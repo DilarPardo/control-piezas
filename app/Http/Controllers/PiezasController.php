@@ -10,52 +10,41 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 
 class PiezasController extends Controller
 {
     public function index()
     {
-        $piezas = Piezas::with('bloque')->get();
-        $proyectos = Proyectos::all();
+        
+        $proyecto = Proyectos::all();
+        $usuarioNombre = Auth::user()->name; 
 
         return Inertia::render('PiezasComponent', [
-            'piezas' => $piezas,
+           
+            'piezas' => Piezas::with('proyecto', 'bloque')->get(),
+            'proyectos' => Proyectos::all(),
             'bloques' => Bloques::all(),
-            'proyectos' => $proyectos,
+            'usuarioNombre' => Auth::user()->name,
         ]);
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'pieza' => 'required|string|max:10',    
-            'nombre_pieza' => 'required|string|max:50',
-            'peso_teorico' => 'nullable|numeric',
-            'peso_real' => 'nullable|numeric',
-            'estado' => 'nullable|string',
-            'id_proyecto' => 'nullable|string|exists:proyectos,id_proyecto',
-            'id_bloque' => 'required|string|exists:bloques,id_bloque',
-            'fecha_registro' => 'nullable|date',
+        'pieza' => 'required|max:10',
+        'peso_teorico' => 'required|numeric',
+        'estado' => 'required|in:Fabricado,Pendiente',
+        'id_proyecto' => 'required|exists:proyectos,id_proyecto',
+        'id_bloque' => 'required|exists:bloques,id_bloque',
         ]);
 
-
-        do {
-            $idPieza = strtoupper(Str::random(10));
-        } while (Piezas::where('id_pieza', $idPieza)->exists());
-
-        Piezas::create([
-            'id_pieza' => $idPieza,
-            'pieza' => $request->pieza,
-            'nombre_pieza' => $request->nombre_pieza,
-            'peso_teorico' => $request->peso_teorico,
-            'peso_real' => $request->peso_real,
-            'estado' => $request->estado ?? 'Pendiente',
-            'id_proyecto' => $request->id_proyecto,
-            'id_bloque' => $request->id_bloque,
-            'fecha_registro' => $request->fecha_registro,
-            'registrado_por' => auth()->id() ?? null, 
+        $request->merge([
+            'id_pieza' => Str::uuid(), // o tu lógica de ID de 10 caracteres
         ]);
+
+        Piezas::create($request->all());
 
         return Redirect::route('piezas.index')->with('success', 'Pieza creada correctamente.');
     }
@@ -63,29 +52,14 @@ class PiezasController extends Controller
     public function update(Request $request, Piezas $pieza)
     {
         $request->validate([
-            'pieza' => 'required|string|max:10',      
-            'nombre_pieza' => 'required|string|max:50',
-            'peso_teorico' => 'nullable|numeric',
-            'peso_real' => 'nullable|numeric',
-            'estado' => 'nullable|string',
-            'id_proyecto' => 'nullable|string|exists:proyectos,id_proyecto',
-            'id_bloque' => 'required|string|exists:bloques,id_bloque',
-            'fecha_registro' => 'nullable|date',
+            'pieza' => 'required|max:10',
+            'peso_teorico' => 'required|numeric',
+            'estado' => 'required|in:Fabricado,Pendiente',
+            'id_proyecto' => 'required|exists:proyectos,id_proyecto',
+            'id_bloque' => 'required|exists:bloques,id_bloque',
         ]);
 
-
-        $pieza->update([
-            'id_pieza' => $idPieza,
-            'pieza' => $request->pieza,
-            'nombre_pieza' => $request->nombre_pieza,
-            'peso_teorico' => $request->peso_teorico,
-            'peso_real' => $request->peso_real,
-            'estado' => $request->estado ?? 'Pendiente',
-            'id_proyecto' => $request->id_proyecto,
-            'id_bloque' => $request->id_bloque,
-            'fecha_registro' => $request->fecha_registro,
-            'registrado_por' => auth()->id() ?? null, 
-        ]);
+        $pieza->update($request->all());
 
         return Redirect::route('piezas.index')->with('success', 'Pieza actualizada correctamente.');
     }
@@ -93,7 +67,6 @@ class PiezasController extends Controller
     public function destroy(Piezas $pieza)
     {
         $pieza->delete();
-
         return Redirect::route('piezas.index')->with('success', 'Pieza eliminada correctamente.');
     }
 }

@@ -6,34 +6,34 @@ import { Head, router } from '@inertiajs/vue3'
 const props = defineProps({
     piezas: Array,
     proyectos: Array,
-    bloques: Array
+    bloques: Array,
+    usuarioNombre: String
 })
 
 const showModal = ref(false)
 const isEdit = ref(false)
 const form = reactive({
-    id_pieza: null,
     pieza: '', 
-    nombre_pieza: '', 
     peso_teorico: '',
     peso_real: '',
     estado: 'Pendiente',
     id_proyecto: '',
     id_bloque: '',
-    fecha_registro: ''
+    fecha_registro: '',
+    registrado_por: ''
 })
 
 function openCreateModal() {
     isEdit.value = false
     Object.assign(form, {
-        id_pieza: null,
         pieza: '',
         peso_teorico: '',
         peso_real: '',
         estado: 'Pendiente',
         id_proyecto: '',
         id_bloque: '',
-        fecha_registro: ''
+        fecha_registro: new Date().toISOString().slice(0, 10),
+        registrado_por: props.usuarioNombre
     })
     showModal.value = true
 }
@@ -60,7 +60,8 @@ function savePieza() {
                 alert('Pieza creada correctamente.')
                 showModal.value = false
                 router.reload({ only: ['piezas'] })
-            }
+            },
+            onError: () => alert('Ocurrió un error al crear el registro.')
         })
     }
 }
@@ -155,9 +156,27 @@ function deletePieza(id) {
                             <option v-for="b in props.bloques" :key="b.id_bloque" :value="b.id_bloque">{{ b.nombre_bloque }}</option>
                         </select>
                     </div>
-                    <div class="mb-4">
+                    <div class="mb-2">
                         <label class="block text-sm font-medium">Fecha Registro</label>
-                        <input v-model="form.fecha_registro" type="date" class="w-full border rounded px-3 py-2" required />
+                        <input
+                        v-model="form.fecha_registro"
+                        type="date"
+                        required
+                        class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100 cursor-not-allowed"
+                        disabled
+                        />
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Registrado por
+                        </label>
+                        <input
+                        v-model="form.registrado_por"
+                        type="text"
+                        maxlength="50"
+                        class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100 cursor-not-allowed"
+                        disabled
+                        >
                     </div>
                     <div class="flex justify-end space-x-2">
                         <button @click="showModal = false" type="button" class="bg-gray-300 px-4 py-2 rounded">Cancelar</button>

@@ -28,11 +28,11 @@ class Piezas extends Model
 
     public function proyecto()
     {
-        return $this->belongsTo(Proyecto::class, 'id_proyecto', 'id_proyecto');
+        return $this->belongsTo(Proyectos::class, 'id_proyecto', 'id_proyecto');
     }
 
     public function bloque()
     {
-        return $this->belongsTo(Bloque::class, 'id_bloque', 'id_bloque');
+        return $this->belongsTo(Bloques::class, 'id_bloque', 'id_bloque');
     }
 }

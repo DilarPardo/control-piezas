@@ -51,6 +51,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/registros', [RegistrosController::class, 'store'])->name('registros.store');
     Route::put('/registros/{registro}', [RegistrosController::class, 'update'])->name('registros.update');
     Route::delete('/registros/{registro}', [RegistrosController::class, 'destroy'])->name('registros.destroy');
+    Route::get('/piezas/bloque/{idBloque}', [RegistrosController::class, 'piezasPorBloque'])->name('piezas.por.bloque');
 });
 
 Route::middleware(['auth'])->group(function () {

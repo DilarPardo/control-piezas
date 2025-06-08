@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Registros;
 use App\Models\Bloques;
+use App\Models\Piezas;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str; 
@@ -20,15 +21,17 @@ class RegistrosController extends Controller
         $usuarioNombre = Auth::user()->name; 
         $registros = Registros::with('bloque')->get();
         $bloques = Bloques::all();
+        $piezas = Piezas::all();
 
         return Inertia::render('RegistrosComponent', [
             'registros' => $registros,
             'bloques' => $bloques,
             'usuarioNombre' => $usuarioNombre,
+            'piezas' => $piezas
         ]);
     }
 
-    public function store(Request $request)
+   public function store(Request $request)
     {
         $request->validate([
             'pieza' => 'required|string|max:10',
@@ -40,13 +43,8 @@ class RegistrosController extends Controller
             'registrado_por' => 'nullable|string|max:50',
         ]);
 
-        $idPieza = strtoupper(Str::random(10));
-        while (Registros::where('id_pieza', $idPieza)->exists()) {
-            $idPieza = strtoupper(Str::random(10));
-        }
-
         Registros::create([
-            'id_pieza' => $idPieza,
+            'id_pieza' => $request->input('id_pieza'),
             'pieza' => $request->input('pieza'),
             'peso_teorico' => $request->input('peso_teorico'),
             'peso_real' => $request->input('peso_real'),
@@ -58,6 +56,7 @@ class RegistrosController extends Controller
 
         return redirect()->route('registros.index')->with('success', 'Registro creado correctamente.');
     }
+
 
     public function update(Request $request, Registros $registro)
     {
@@ -84,8 +83,9 @@ class RegistrosController extends Controller
         return redirect()->route('registros.index')->with('success', 'Registro actualizado correctamente.');
     }
 
-    public function destroy(Registros $registro)
+    public function destroy($id)
     {
+        $registro = Registros::findOrFail($id);
         $registro->delete();
 
         return redirect()->route('registros.index')->with('success', 'Registro eliminado correctamente.');

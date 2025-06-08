@@ -11,8 +11,8 @@ class Registros extends Model
     use HasFactory;
 
     protected $table = 'registros';
-    protected $primaryKey = 'id_pieza';
-    public $incrementing = false;
+    protected $primaryKey = 'id_registro';
+    public $incrementing = true;
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -29,6 +29,11 @@ class Registros extends Model
     public function bloque()
     {
         return $this->belongsTo(Bloques::class, 'id_bloque', 'id_bloque');
+    }
+
+    public function pieza()
+    {
+        return $this->belongsTo(Piezas::class, 'id_pieza', 'id_pieza');
     }
 
 }
