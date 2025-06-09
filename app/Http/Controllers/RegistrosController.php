@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\DB;
 
 
 class RegistrosController extends Controller
@@ -90,4 +90,24 @@ class RegistrosController extends Controller
 
         return redirect()->route('registros.index')->with('success', 'Registro eliminado correctamente.');
     }
+
+    public function dashboard()
+    {
+        $datos = DB::table('registros')
+            ->join('bloques', 'registros.id_bloque', '=', 'bloques.id_bloque')
+            ->join('proyectos', 'bloques.id_proyecto', '=', 'proyectos.id_proyecto')
+            ->select(
+                'proyectos.nombre as proyecto',
+                DB::raw("SUM(CASE WHEN registros.estado = 'Pendiente' THEN 1 ELSE 0 END) as pendientes"),
+                DB::raw("SUM(CASE WHEN registros.estado = 'Fabricado' THEN 1 ELSE 0 END) as fabricados")
+            )
+            ->groupBy('proyectos.nombre')
+            ->get();
+
+        return Inertia::render('Dashboard', [
+            'datosGraficos' => $datos
+        ]);
+    }
+
+
 }
