@@ -99,4 +99,4 @@ php artisan serve
 
 ## ✍️ Autor
 
-Desarrollado por [Tu Nombre].
+Desarrollado por Dilar Jose Pardo Burgos.
