@@ -1,10 +1,10 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProyectosController;
 use App\Http\Controllers\BloquesController;
 use App\Http\Controllers\RegistrosController;
@@ -15,11 +15,16 @@ use App\Http\Controllers\PiezasController;
 Route::get('/', function () {
     return redirect('/login');
 });
-
 // Dashboard (solo para usuarios autenticados)
 Route::get('/dashboard', [RegistrosController::class, 'dashboard'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
+
+// Dashboard Excel
+Route::get('/exportar-pendientes', [RegistrosController::class, 'exportarPendientes'])
+    ->middleware(['auth', 'verified'])
+    ->name('exportar.pendientes');
+
 
 // Rutas protegidas por autenticación
 Route::middleware('auth')->group(function () {
@@ -28,7 +33,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
 });
-
 // Rutas de autenticación (login, register, etc.)
 require __DIR__.'/auth.php';
 

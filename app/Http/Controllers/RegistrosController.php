@@ -12,7 +12,8 @@ use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-
+use App\Exports\PiezasPendientesExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class RegistrosController extends Controller
 {
@@ -31,7 +32,7 @@ class RegistrosController extends Controller
         ]);
     }
 
-   public function store(Request $request)
+    public function store(Request $request)
     {
         $request->validate([
             'pieza' => 'required|string|max:10',
@@ -56,7 +57,6 @@ class RegistrosController extends Controller
 
         return redirect()->route('registros.index')->with('success', 'Registro creado correctamente.');
     }
-
 
     public function update(Request $request, Registros $registro)
     {
@@ -91,23 +91,45 @@ class RegistrosController extends Controller
         return redirect()->route('registros.index')->with('success', 'Registro eliminado correctamente.');
     }
 
-    public function dashboard()
+    public function dashboard(Request $request)
     {
-        $datos = DB::table('registros')
+        $fechaInicio = $request->input('fecha_inicio');
+        $fechaFin = $request->input('fecha_fin');
+
+        $query = DB::table('registros')
             ->join('bloques', 'registros.id_bloque', '=', 'bloques.id_bloque')
             ->join('proyectos', 'bloques.id_proyecto', '=', 'proyectos.id_proyecto')
             ->select(
                 'proyectos.nombre as proyecto',
                 DB::raw("SUM(CASE WHEN registros.estado = 'Pendiente' THEN 1 ELSE 0 END) as pendientes"),
                 DB::raw("SUM(CASE WHEN registros.estado = 'Fabricado' THEN 1 ELSE 0 END) as fabricados")
-            )
-            ->groupBy('proyectos.nombre')
-            ->get();
+            );
+
+        if ($fechaInicio && $fechaFin) {
+            // Convertir '2025-06' => '2025-06-01', '2025-07' => '2025-07-31'
+            $fechaInicio .= '-01';
+            $fechaFin .= '-31';
+
+            $query->whereBetween('registros.fecha_registro', [$fechaInicio, $fechaFin]);
+        }
+
+        $datos = $query->groupBy('proyectos.nombre')->get();
 
         return Inertia::render('Dashboard', [
-            'datosGraficos' => $datos
+            'datosGraficos' => $datos,
+            'filtros' => [
+                'fecha_inicio' => $request->input('fecha_inicio'),
+                'fecha_fin' => $request->input('fecha_fin'),
+            ]
         ]);
     }
 
+    public function exportarPendientes(Request $request)
+    {
+        $fechaInicio = $request->input('fecha_inicio');
+        $fechaFin = $request->input('fecha_fin');
+
+        return Excel::download(new PiezasPendientesExport($fechaInicio, $fechaFin), 'piezas_pendientes.xlsx');
+    }
 
 }
