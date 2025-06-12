@@ -47,16 +47,16 @@ const showingNavigationDropdown = ref(false);
                             </div>
 
                             <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink :href="route('registros.index')" :active="route().current('registros.index')">
-                                    Registros
-                                </NavLink>
-                            </div>
-
-                            <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                                 <NavLink :href="route('piezas.index')" :active="route().current('piezas.index')">
                                     Piezas
                                 </NavLink>
                             </div>
+
+                            <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                                <NavLink :href="route('registros.index')" :active="route().current('registros.index')">
+                                    Registros
+                                </NavLink>
+                            </div>                           
 
                         </div>
 
@@ -149,13 +149,13 @@ const showingNavigationDropdown = ref(false);
                             Bloques
                         </ResponsiveNavLink>
 
-                        <ResponsiveNavLink :href="route('registros.index')" :active="route().current('registros.index')">
-                            Registros
-                        </ResponsiveNavLink>
-
                         <ResponsiveNavLink :href="route('piezas.index')" :active="route().current('piezas.index')">
                             Piezas
                         </ResponsiveNavLink>
+
+                        <ResponsiveNavLink :href="route('registros.index')" :active="route().current('registros.index')">
+                            Registros
+                        </ResponsiveNavLink>                       
 
                     </div>
 

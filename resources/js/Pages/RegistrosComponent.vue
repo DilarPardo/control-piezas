@@ -19,7 +19,7 @@ const form = reactive({
   pieza: '',
   peso_teorico: '',
   peso_real: '',
-  diferencia: '', // 🔴 Se agregó este campo, necesario para el v-model en el input
+  diferencia: '',
   estado: 'Pendiente',
   id_bloque: '',
   fecha_registro: '',
@@ -28,7 +28,6 @@ const form = reactive({
 
 const errors = reactive({ peso_teorico: '' })
 
-// Filtra piezas por bloque y estado pendiente
 const piezasFiltradas = ref([])
 watch(() => form.id_bloque, val => {
   piezasFiltradas.value = props.piezas.filter(
@@ -36,7 +35,6 @@ watch(() => form.id_bloque, val => {
   )
 })
 
-// Cuando seleccionas la pieza, carga peso teórico
 watch(() => form.id_pieza, val => {
   const sel = props.piezas.find(p => p.id_pieza === val)
   if (sel) {
@@ -50,7 +48,6 @@ watch(() => form.id_pieza, val => {
   }
 })
 
-// Al cambiar peso_real, calcula diferencia
 watch(() => form.peso_real, val => {
   const pt = parseFloat(form.peso_teorico) || 0
   const pr = parseFloat(val) || 0
@@ -85,10 +82,20 @@ function openEditModal(registro) {
 
 function saveRegistro() {
   errors.peso_teorico = ''
+  errors.peso_real = ''
+
   const pt = parseFloat(form.peso_teorico)
+  const pr = parseFloat(form.peso_real)
+
   if (isNaN(pt) || pt <= 0) {
     errors.peso_teorico = 'El peso teórico debe ser mayor que cero.'
     form.peso_teorico = ''
+    return
+  }
+
+  if (isNaN(pr) || pr <= 0) {
+    errors.peso_real = 'El peso real debe ser mayor que cero.'
+    form.peso_real = ''
     return
   }
 
@@ -192,9 +199,9 @@ function deleteRegistro(id) {
             <label class="block font-medium mb-1">Pieza</label>
             <select v-model="form.id_pieza" class="w-full border rounded px-3 py-2" :disabled="piezasFiltradas.length === 0">
               <option disabled value="">Seleccione una pieza</option>
-                <option v-for="pieza in piezasFiltradas" :key="pieza.id_pieza" :value="pieza.id_pieza">
-                  {{ pieza.pieza }}
-                </option>
+              <option v-for="pieza in piezasFiltradas" :key="pieza.id_pieza" :value="pieza.id_pieza">
+                {{ pieza.pieza }}
+              </option>
             </select>
           </div>
 
@@ -213,6 +220,7 @@ function deleteRegistro(id) {
             </div>
           </div>
           <p v-if="errors.peso_teorico" class="text-red-600">{{ errors.peso_teorico }}</p>
+           <p v-if="errors.peso_real" class="text-red-600 text-sm mt-1">{{ errors.peso_real }}</p>
 
           <div>
             <label>Estado</label>

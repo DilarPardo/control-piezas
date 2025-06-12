@@ -12,8 +12,13 @@ const page = usePage()
 
 const showModal = ref(false)
 const isEdit = ref(false)
+
 const form = reactive({
     id_proyecto: null,
+    nombre: ''
+})
+
+const errors = reactive({
     nombre: ''
 })
 
@@ -28,6 +33,7 @@ function openCreateModal() {
     isEdit.value = false
     form.id_proyecto = null
     form.nombre = ''
+    errors.nombre = ''
     showModal.value = true
 }
 
@@ -36,24 +42,30 @@ function openEditModal(proyecto) {
     isEdit.value = true
     form.id_proyecto = proyecto.id_proyecto
     form.nombre = proyecto.nombre
+    errors.nombre = ''
     showModal.value = true
 }
 
 // Guardar proyecto (crear o editar)
 function saveProyecto() {
+    if (!form.nombre.trim()) {
+        errors.nombre = 'El nombre es obligatorio'
+        return
+    } else {
+        errors.nombre = ''
+    }
+
+    const payload = { nombre: form.nombre }
+
     if (isEdit.value) {
-        router.put(`/proyectos/${form.id_proyecto}`, {
-            nombre: form.nombre
-        }, {
+        router.put(`/proyectos/${form.id_proyecto}`, payload, {
             preserveScroll: true,
             onSuccess: () => {
                 showModal.value = false
             }
         })
     } else {
-        router.post('/proyectos', {
-            nombre: form.nombre
-        }, {
+        router.post('/proyectos', payload, {
             preserveScroll: true,
             onSuccess: () => {
                 showModal.value = false
@@ -126,8 +138,15 @@ function deleteProyecto(id) {
                 <form @submit.prevent="saveProyecto">
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del proyecto</label>
-                        <input v-model="form.nombre" type="text"
-                            class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                        <input
+                            v-model="form.nombre"
+                            type="text"
+                            :class="[
+                                'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2',
+                                errors.nombre ? 'border-red-500 focus:ring-red-400' : 'border-gray-300 focus:ring-blue-400'
+                            ]"
+                        />
+                        <p v-if="errors.nombre" class="text-red-500 text-sm mt-1">{{ errors.nombre }}</p>
                     </div>
                     <div class="flex justify-end space-x-2">
                         <button type="button" @click="showModal = false"
