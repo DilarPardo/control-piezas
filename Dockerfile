@@ -12,8 +12,10 @@ WORKDIR /var/www/html
 
 # Instalar dependencias del sistema
 RUN apt-get update && apt-get install -y \
-    git curl libzip-dev unzip sqlite3 libsqlite3-dev libpng-dev libonig-dev \
-    && docker-php-ext-install pdo pdo_sqlite zip
+    git curl libzip-dev unzip sqlite3 libsqlite3-dev libpng-dev libjpeg-dev libfreetype6-dev libonig-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo pdo_sqlite zip gd
+
 
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
