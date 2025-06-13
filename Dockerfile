@@ -1,19 +1,29 @@
-# Imagen base con PHP, Composer y extensiones necesarias
+# Imagen base oficial de PHP con soporte para CLI
 FROM php:8.2-cli
 
-# Instalar dependencias del sistema
+# Variables de entorno para evitar interacciones
+ENV COMPOSER_ALLOW_SUPERUSER=1 \
+    DEBIAN_FRONTEND=noninteractive
+
+# Instalar extensiones de sistema necesarias
 RUN apt-get update && apt-get install -y \
     unzip \
     git \
     curl \
+    zip \
+    libzip-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libonig-dev \
+    libxml2-dev \
     sqlite3 \
     libsqlite3-dev \
-    libzip-dev \
-    zip \
     npm \
-    nodejs
+    nodejs \
+    && docker-php-ext-install pdo pdo_sqlite gd zip
 
-# Instalar Composer
+# Instalar Composer globalmente
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Crear directorio de trabajo
@@ -22,23 +32,23 @@ WORKDIR /app
 # Copiar archivos del proyecto al contenedor
 COPY . .
 
-# Instalar dependencias PHP
+# Instalar dependencias PHP (Laravel, Excel, etc.)
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
-# Instalar dependencias JS y compilar assets (para Vue)
+# Instalar dependencias JS y compilar frontend (Vue, React, etc.)
 RUN npm install && npm run build
 
-# Generar key de Laravel
+# Generar clave de aplicación Laravel
 RUN php artisan key:generate
 
 # Crear base de datos SQLite si no existe
 RUN mkdir -p database && touch database/database.sqlite
 
-# Dar permisos necesarios
+# Dar permisos a las carpetas necesarias
 RUN chmod -R 777 storage bootstrap/cache database
 
-# Puerto que Laravel usará
+# Puerto expuesto (puedes cambiarlo si Laravel usa otro)
 EXPOSE 10000
 
-# Comando que ejecutará Laravel al iniciar el contenedor
+# Comando para ejecutar Laravel al iniciar el contenedor
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=10000"]
