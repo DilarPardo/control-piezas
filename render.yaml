@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: laravel-vue-app
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: Dockerfile
+    buildCommand: ""
+    startCommand: ""
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_KEY
+        sync: false
+      - key: DB_CONNECTION
+        value: sqlite
+      - key: DB_DATABASE
+        value: /app/database/database.sqlite
