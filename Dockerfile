@@ -1,53 +1,50 @@
-FROM php:8.2-cli
+# Etapa 1: Build de frontend con Node
+FROM node:20 AS frontend
 
-# Instalar dependencias del sistema
-RUN apt-get update && apt-get install -y \
-    unzip \
-    git \
-    curl \
-    sqlite3 \
-    libsqlite3-dev \
-    libzip-dev \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    zip \
-    npm \
-    nodejs \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_sqlite zip gd \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-
-# Instalar Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# Crear directorio de trabajo
 WORKDIR /app
 
-# Copiar archivos del proyecto
+COPY package*.json ./
+RUN npm install
+
+COPY . ./
+RUN npm run build
+
+# Crear base de datos si no existe
+RUN mkdir -p /data && touch /data/database.sqlite && \
+    chown -R www-data:www-data /data && chmod 664 /data/database.sqlite
+
+
+# Etapa 2: Configuración final de Laravel + Apache
+FROM php:8.2-apache
+
+WORKDIR /var/www/html
+
+# Requisitos del sistema
+RUN apt-get update && apt-get install -y \
+    git curl libzip-dev unzip sqlite3 libsqlite3-dev libpng-dev libonig-dev \
+    && docker-php-ext-install pdo pdo_sqlite zip
+
+# Instalar Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Copiar todo desde la build
 COPY . .
 
-# Crear archivo .env si no existe
-RUN cp .env.example .env
+# Copiar build del frontend
+COPY --from=frontend /app/public/build public/build
 
-# Instalar dependencias PHP
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+# Configuración Apache
+RUN a2enmod rewrite
 
-# Dar permisos necesarios antes de ejecutar artisan
-RUN chmod -R 777 storage bootstrap/cache
+# Permisos y optimización Laravel
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache \
+    && composer install --no-dev --optimize-autoloader \
+    && php artisan config:clear \
+    && php artisan route:clear \
+    && php artisan view:clear \
+    && php artisan cache:clear \
+    && php artisan migrate --force || true
 
-# Generar clave de aplicación Laravel
-RUN php artisan key:generate
-
-# Instalar dependencias JS y compilar frontend (Vue, React, etc.)
-RUN npm install && npm run build
-
-# Crear base de datos SQLite si no existe
-RUN mkdir -p database && touch database/database.sqlite && chmod -R 777 database
-
-# Exponer puerto
-EXPOSE 10000
-
-# Comando para iniciar el servidor de desarrollo Laravel
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=10000"]
+# Puerto por defecto de Apache
+EXPOSE 80

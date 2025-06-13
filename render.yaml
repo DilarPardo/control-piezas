@@ -1,25 +1,22 @@
 services:
   - type: web
-    name: laravel-vue-app
+    name: control-piezas
     env: docker
     plan: free
     region: oregon
     dockerfilePath: Dockerfile
-
-    buildCommand: |
-      composer install --no-dev --optimize-autoloader
-      php artisan config:clear
-      php artisan config:cache
-      php artisan migrate --force
-
-    startCommand: php artisan serve --host=0.0.0.0 --port=10000
-
+    buildCommand: ""
+    startCommand: ""
     envVars:
       - key: APP_ENV
         value: production
       - key: APP_KEY
-        sync: false  # Asegúrate de poner una clave real si no estás usando secretos sincronizados
+        sync: false
+      - key: APP_URL
+        value: https://control-piezas.onrender.com
+      - key: ASSET_URL
+        value: https://control-piezas.onrender.com
       - key: DB_CONNECTION
         value: sqlite
       - key: DB_DATABASE
-        value: /app/database/database.sqlite
+        value: /data/database.sqlite
