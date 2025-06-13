@@ -74,7 +74,7 @@ const showingNavigationDropdown = ref(false);
 
                                                 <svg
                                                     class="ms-2 -me-0.5 h-4 w-4"
-                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    xmlns="https://www.w3.org/2000/svg"
                                                     viewBox="0 0 20 20"
                                                     fill="currentColor"
                                                 >
